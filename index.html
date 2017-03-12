@@ -26,7 +26,8 @@
             </div>
 
             <div class = "col-md-8">
-                <div class = "chat" id = "chat" style="overflow-y: auto">
+
+                <div class = "chat" id = "chat" style="overflow-y: auto; bottom: 100px">
 
                 </div>
                 <form id = "messageForm" style="padding: 3px; position: fixed;bottom: 0; width: 70%;">
@@ -52,6 +53,13 @@
        var $users = $('#users');
        var user;
 
+       // Print messages on first connection
+        socket.on('first connect', function (data) {
+            for(i = 0; i < data.length; i++){
+                $chat.append('<div class = "well"><strong>'+data[i].time[0]+':'+ data[i].time[1]+' '+data[i].username+': </strong> '+data[i].msg+'</div>');
+            }
+        });
+
        //Submit message to server
        $messageForm.submit(function (e) {
            e.preventDefault();
@@ -67,12 +75,14 @@
         //Print message from server
        socket.on('new message',function (data) {
            var colorVal = data.color; // get color from the data object
-           document.getElementById("chat").style.color = "#"+colorVal; // Change the color of the text
+           //document.getElementById("chat").style.color = "#"+colorVal; // Change the color of the text
 
-           if(user === data.username)
-               document.getElementById("chat").style.fontWeight = 700; // If the user is the current user, make their messages bold
+           //if(user === data.username)
+               //document.getElementById("chat").style.fontWeight = 700; // If the user is the current user, make their messages bold
 
-           $chat.append('<div class = "well"><strong>'+data.time[0]+':'+ data.time[1]+' '+data.username+': </strong> '+data.msg+'</div>');
+           var line = '<div class = "well"><strong>'+data.time[0]+':'+ data.time[1]+' '+ '<span style="color:' + colorVal + '>'+ ' 'data.username+': </strong> '+data.msg+'</div>';
+           $chat.append(line);
+           $('#chat').scrollTop($('#chat').scrollTop() + $('#chat').height());
        });
 
        //Print list of users

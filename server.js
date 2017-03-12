@@ -22,6 +22,8 @@ app.get('/',function(req,res){
 io.sockets.on('connection',function(socket){
     connections.push(socket);
     users.push("User" + createUniqueUsername()); // Create a unique username for the user
+    socket.emit('first connect', messages);
+
 
     // New User
     socket.username = users[users.length-1]; // Assign the username to socket
@@ -50,7 +52,7 @@ io.sockets.on('connection',function(socket){
             color = setColor(data); // if /nickcolor was entered, return the desired color
         }
         messages.push({msg:data,time:getTime(),username:socket.username,color:color});
-            io.sockets.emit('new message', {msg:data,time:getTime(),username:socket.username,color:color});
+        io.sockets.emit('new message', {msg:data,time:getTime(),username:socket.username,color:color});
     });
 });
 
