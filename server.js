@@ -51,6 +51,7 @@ io.sockets.on('connection',function(socket){
     socket.on('disconnect',function (data) {
         users.splice(users.indexOf(socket.username),1); // remove user from user array
         connections.splice(connections.indexOf(socket),1); // remove connection
+        updateUsernames(socket);
         console.log('Disconnect: %s sockets connected',connections.length);
     });
 
