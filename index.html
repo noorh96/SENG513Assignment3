@@ -27,7 +27,7 @@
 
             <div class = "col-md-8">
 
-                <div class = "chat" id = "chat" style="overflow-y: auto; padding-bottom: 73px">
+                <div class = "chat" id = "chat" style="padding-bottom: 73px;">
 
                 </div>
                 <form id = "messageForm" style="padding: 3px; position: fixed;bottom: 0; width: 70%">
@@ -52,6 +52,8 @@
        var $chat = $('#chat');
        var $users = $('#users');
        var user;
+       var cookie = "";
+
 
        // Print messages on first connection
         socket.on('first connect', function (data) {
@@ -60,7 +62,23 @@
             }
         });
 
-       //Submit message to server
+
+        socket.on('check cookie',function () {
+            if(document.cookie){
+                user = document.cookie.split("=")[1];
+                console.log("if cookie " + document.cookie);
+                socket.emit('send cookie',document.cookie);
+            }
+           else{
+                document.cookie = "username =" + user;
+            }
+        });
+
+
+        socket.on('change cookie',function (data) {
+            document.cookie = "username = " + data;
+        });
+        //Submit message to server
        $messageForm.submit(function (e) {
            e.preventDefault();
            if($message.val().trim()){
@@ -81,12 +99,15 @@
            //document.getElementById("chat").style.color = "#"+colorVal; // Change the color of the text
 
            if(user === data.username)
-               line = '<div class = "well"><strong>'+data.time[0]+':'+ data.time[1]+' <span style="color: #' + colorVal + '">  '+data.username+':</span> </strong> <span style="color: mediumslateblue; font-weight: bold">'+data.msg+'</span></div>';
+               line = '<div class = "well id = "message"><strong>'+data.time[0]+':'+ data.time[1]+' <span style="color: #' + colorVal + '">  '+data.username+':</span> </strong> <span style="color: mediumslateblue; font-weight: bold">'+data.msg+'</span></div>';
            else
-                line = '<div class = "well"><strong>'+data.time[0]+':'+ data.time[1]+' <span style="color: #' + colorVal + '">  '+data.username+':</span> </strong> '+data.msg+'</div>';
+                line = '<div class = "well" id = "message"><strong>'+data.time[0]+':'+ data.time[1]+' <span style="color: #' + colorVal + '">  '+data.username+':</span> </strong> '+data.msg+'</div>';
            $chat.append(line);
-           //$('#chat').scrollTop($('#chat').scrollTop() + $('#chat').height());
-            $('#chat').scrollTop = $('#chat').scrollHeight;
+
+           var objDiv = document.getElementsByTagName("body");
+           objDiv.scrollTop = objDiv.scrollHeight;
+           //$('#message').scrollTop($('#message').scrollTop() + $('#messageForm').height());
+            //$('#well').scrollTop = $('#well').scrollHeight;
        });
 
        //Print list of users

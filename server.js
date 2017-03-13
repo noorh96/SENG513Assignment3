@@ -23,18 +23,33 @@ app.get('/',function(req,res){
 io.sockets.on('connection',function(socket){
     connections.push(socket);
     users.push("User" + createUniqueUsername()); // Create a unique username for the user
-    socket.emit('first connect', messages);
-    socket.emit('check cookie');
-
-    // New User
     socket.username = users[users.length-1]; // Assign the username to socket
+
+    socket.emit('first connect', messages);
+    // New User
     socket.emit('get user', socket.username); // send it to client so that they know who the current user is
     updateUsernames(socket); // Send the client an updated list of usernames
     console.log('Connected: %s sockets connected', connections.length);
 
+
+    // Check Cookie
+    socket.emit('check cookie');
+    socket.on('send cookie',function (data) {
+        console.log(data);
+        if(data) {
+            var temp = data.split("=")[1];
+            users.splice(users.indexOf(socket.username),1); // remove user from user array
+            users.push(temp);
+            console.log(temp);
+            socket.username = temp;
+            updateUsernames(socket);
+        }
+    });
+
+
     //Disconnect
     socket.on('disconnect',function (data) {
-        users.splice(users.indexOf(users.indexOf(socket.username),1)); // remove user from user array
+        users.splice(users.indexOf(socket.username),1); // remove user from user array
         connections.splice(connections.indexOf(socket),1); // remove connection
         console.log('Disconnect: %s sockets connected',connections.length);
     });
@@ -46,6 +61,7 @@ io.sockets.on('connection',function(socket){
             changeUsername(data, socket); // If /nick was entered, change the username in socket and user
             socket.emit('get user', socket.username); // Let the client know that the username has changed
             updateUsernames(socket); // emit the new list of usernames
+            socket.emit('change cookie',socket.username);
         }
         res = checkColorChange(data); // Check if /nickcolor was entered
         if(res){
