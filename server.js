@@ -10,6 +10,7 @@ var io = require('socket.io').listen(server);
 users = [];
 connections = [];
 messages = [];
+var color = 0;
 
 
 server.listen(process.env.PORT||3000);
@@ -23,7 +24,7 @@ io.sockets.on('connection',function(socket){
     connections.push(socket);
     users.push("User" + createUniqueUsername()); // Create a unique username for the user
     socket.emit('first connect', messages);
-
+    socket.emit('check cookie');
 
     // New User
     socket.username = users[users.length-1]; // Assign the username to socket
@@ -33,14 +34,13 @@ io.sockets.on('connection',function(socket){
 
     //Disconnect
     socket.on('disconnect',function (data) {
-        users.splice(users.indexOf(connections.indexOf(socket.username),1)); // remove user from user array
+        users.splice(users.indexOf(users.indexOf(socket.username),1)); // remove user from user array
         connections.splice(connections.indexOf(socket),1); // remove connection
         console.log('Disconnect: %s sockets connected',connections.length);
     });
 
     //Send Message
     socket.on('send message', function(data){
-        var color = 0;
         var res = checkUsernameChange(data); // Check if /nick was entered
         if(res) {
             changeUsername(data, socket); // If /nick was entered, change the username in socket and user
@@ -49,10 +49,13 @@ io.sockets.on('connection',function(socket){
         }
         res = checkColorChange(data); // Check if /nickcolor was entered
         if(res){
-            color = setColor(data); // if /nickcolor was entered, return the desired color
+            socket.color = setColor(data); // if /nickcolor was entered, return the desired color
         }
-        messages.push({msg:data,time:getTime(),username:socket.username,color:color});
-        io.sockets.emit('new message', {msg:data,time:getTime(),username:socket.username,color:color});
+
+
+        console.log(color);
+        messages.push({msg:data,time:getTime(),username:socket.username,color:socket.color});
+        io.sockets.emit('new message', {msg:data,time:getTime(),username:socket.username,color:socket.color});
     });
 });
 
